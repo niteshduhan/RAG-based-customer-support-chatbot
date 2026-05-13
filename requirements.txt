@@ -1,41 +1,43 @@
 # ── Web Framework ─────────────────────────────────────────────
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-pydantic==2.7.4
-python-multipart==0.0.9
-aiofiles==23.2.1
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+pydantic==2.11.4
+python-multipart==0.0.20
+aiofiles==24.1.0
 
 # ── Environment ────────────────────────────────────────────────
-python-dotenv==1.0.1
+python-dotenv==1.1.0
 
 # ── LLM ────────────────────────────────────────────────────────
-groq==0.9.0
+groq==0.24.0
 
 # ── Embeddings & Vector Store ──────────────────────────────────
-sentence-transformers==3.0.1
-faiss-cpu==1.12.0         # swap to faiss-gpu if you have CUDA in prod
+sentence-transformers==4.1.0
+faiss-cpu==1.12.0
 
 # ── Chunking ────────────────────────────────────────────────────
-langchain-text-splitters==0.2.4
+langchain-text-splitters==0.3.8
 
 # ── Document Loading ────────────────────────────────────────────
-pdfplumber==0.11.4
-easyocr==1.7.1            # only needed for re-indexing, not runtime
+pdfplumber==0.11.6
+
+# REMOVE easyocr unless absolutely necessary
+# easyocr is very heavy for Render free tier
 
 # ── ML / Numerical ─────────────────────────────────────────────
-torch==2.9.0             # CPU build is fine; use +cu121 for CUDA
+torch==2.9.0
 numpy==2.3.0
 scipy==1.16.0
-Pillow==10.4.0
+Pillow==11.2.1
 
 # ── SQL / Database ─────────────────────────────────────────────
-sqlalchemy==2.0.31
-alembic==1.13.2           # migrations (optional but good practice)
-psycopg2-binary==2.9.10   # PostgreSQL driver — required for Render's managed DB
+sqlalchemy==2.0.41
+alembic==1.15.2
+psycopg2-binary==2.9.10
 
 # ── Evaluation & Visualisation ─────────────────────────────────
-matplotlib==3.9.1
+matplotlib==3.10.3
 
 # ── Dev / Testing ──────────────────────────────────────────────
-httpx==0.27.0             # for FastAPI TestClient
-pytest==8.2.2
+httpx==0.28.1
+pytest==8.3.5
