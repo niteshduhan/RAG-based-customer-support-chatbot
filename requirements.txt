@@ -24,8 +24,8 @@ easyocr==1.7.1            # only needed for re-indexing, not runtime
 
 # ── ML / Numerical ─────────────────────────────────────────────
 torch==2.9.0             # CPU build is fine; use +cu121 for CUDA
-numpy==1.26.4
-scipy==1.13.1
+numpy==2.3.0
+scipy==1.16.0
 Pillow==10.4.0
 
 # ── SQL / Database ─────────────────────────────────────────────
