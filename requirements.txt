@@ -23,7 +23,7 @@ pdfplumber==0.11.4
 easyocr==1.7.1            # only needed for re-indexing, not runtime
 
 # ── ML / Numerical ─────────────────────────────────────────────
-torch==2.3.1              # CPU build is fine; use +cu121 for CUDA
+torch==2.9.0             # CPU build is fine; use +cu121 for CUDA
 numpy==1.26.4
 scipy==1.13.1
 Pillow==10.4.0
