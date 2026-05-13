@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Agent — Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0b0f1a;
+      color: #e8eaf6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+    }
+    h1 { font-size: 1.6rem; font-weight: 700; }
+    h1 span { color: #ffffff; }
+    p  { color: rgba(255,255,255,.45); font-size: .9rem; text-align: center; max-width: 460px; line-height: 1.6; }
+
+    .embed-code {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 10px;
+      padding: 1rem 1.4rem;
+      font-family: monospace;
+      font-size: .8rem;
+      color: #d0d0d0;
+      max-width: 500px;
+      width: 100%;
+    }
+    .embed-code span { color: rgba(255,255,255,.4); }
+
+    .tags { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; }
+    .tag {
+      padding: .3rem .8rem;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 500;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.18);
+      color: #cccccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Amazon <span>Customer Agent</span></h1>
+  <p>RAG-powered multilingual customer service chatbot. Ask anything about returns, refunds, Prime, and deliveries — in English, Hindi, or Hinglish.</p>
+
+  <div class="tags">
+    <div class="tag">multilingual-e5-base</div>
+    <div class="tag">FAISS</div>
+    <div class="tag">Groq LLM</div>
+    <div class="tag">RAG</div>
+    <div class="tag">Hindi · Hinglish · English</div>
+  </div>
+
+  <div class="embed-code">
+    <span>&lt;!-- Embed on any website --&gt;</span><br>
+    &lt;script src="https://yourapp.com/widget.js"&gt;&lt;/script&gt;
+  </div>
+
+  <p>👇 Click the green button in the bottom-right corner to try the chatbot.</p>
+
+  <!-- The widget itself -->
+  <script src="/widget.js"></script>
+</body>
+</html>

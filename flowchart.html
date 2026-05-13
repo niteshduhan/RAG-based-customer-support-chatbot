@@ -1,0 +1,652 @@
+<!-- HOW TO RUN THIS : start flowchart.html  -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Pipeline Flowchart</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green:      #1abc9c;
+    --green-dim:  #0e6655;
+    --green-bg:   #0a3d32;
+    --purple:     #7c5cbf;
+    --purple-dim: #4a3580;
+    --purple-bg:  #1e1040;
+    --blue:       #3498db;
+    --blue-dim:   #1a5276;
+    --blue-bg:    #0d2b40;
+    --orange:     #c0392b;
+    --orange-dim: #7b241c;
+    --orange-bg:  #2c0f0b;
+    --bg:         #0b0f1a;
+    --text:       #e8eaf6;
+    --text-dim:   #8892b0;
+    --mono:       'JetBrains Mono', monospace;
+    --sans:       'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,.25) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,.15) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 25%, rgba(255,255,255,.2)  0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 80%, rgba(255,255,255,.1)  0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,.2)  0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    text-align: center;
+    padding: 2.5rem 1rem 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  header h1 {
+    font-family: var(--mono);
+    font-size: clamp(1.1rem, 3vw, 1.7rem);
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+
+  header p {
+    margin-top: .4rem;
+    font-size: .8rem;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    letter-spacing: .06em;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+    padding: .5rem 1rem 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .72rem;
+    font-family: var(--mono);
+    color: var(--text-dim);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+  }
+
+  /* ── Main canvas ── */
+  .canvas {
+    position: relative;
+    z-index: 1;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+
+  /* ── SVG connectors (sits behind nodes) ── */
+  #connector-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  /* ── Section panels ── */
+  .section-panel {
+    border-radius: 14px;
+    padding: 1.2rem 1.2rem 1.4rem;
+    border: 1px solid rgba(255,255,255,.06);
+    position: relative;
+  }
+  .section-title {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .28rem .7rem;
+    border-radius: 5px;
+    display: inline-block;
+    margin-bottom: .9rem;
+    font-weight: 600;
+  }
+
+  .panel-green  { background: rgba(10,61,50,.55);  border-color: rgba(26,188,156,.18); }
+  .panel-purple { background: rgba(30,16,64,.55);  border-color: rgba(124,92,191,.18); }
+  .panel-blue   { background: rgba(13,43,64,.65);  border-color: rgba(52,152,219,.22); }
+  .panel-orange { background: rgba(44,15,11,.55);  border-color: rgba(192,57,43,.18); }
+
+  .title-green  { background: rgba(26,188,156,.15); color: var(--green); }
+  .title-purple { background: rgba(124,92,191,.15); color: #a98dde; }
+  .title-blue   { background: rgba(52,152,219,.15); color: var(--blue); }
+  .title-orange { background: rgba(192,57,43,.15);  color: #e07060; }
+
+  /* ── Top two-column grid ── */
+  .top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+    margin-bottom: 1.4rem;
+  }
+
+  /* ── Node cards ── */
+  .node {
+    border-radius: 10px;
+    padding: .7rem 1rem;
+    margin-bottom: .55rem;
+    cursor: default;
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .node:last-child { margin-bottom: 0; }
+
+  .node::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.04) 0%, transparent 60%);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .node:hover {
+    transform: translateY(-2px) scale(1.015);
+    filter: brightness(1.15);
+    z-index: 10;
+  }
+
+  /* colour variants */
+  .node-green {
+    background: linear-gradient(135deg, #0e6655 0%, #0a4d3e 100%);
+    border: 1px solid rgba(26,188,156,.35);
+    box-shadow: 0 0 0 0 rgba(26,188,156,0);
+  }
+  .node-green:hover { box-shadow: 0 0 18px rgba(26,188,156,.4), 0 6px 20px rgba(0,0,0,.4); }
+
+  .node-purple {
+    background: linear-gradient(135deg, #4a3580 0%, #35206a 100%);
+    border: 1px solid rgba(124,92,191,.4);
+    box-shadow: 0 0 0 0 rgba(124,92,191,0);
+  }
+  .node-purple:hover { box-shadow: 0 0 18px rgba(124,92,191,.45), 0 6px 20px rgba(0,0,0,.4); }
+
+  .node-blue {
+    background: linear-gradient(135deg, #1a5276 0%, #0d3452 100%);
+    border: 1px solid rgba(52,152,219,.4);
+    box-shadow: 0 0 0 0 rgba(52,152,219,0);
+  }
+  .node-blue:hover { box-shadow: 0 0 18px rgba(52,152,219,.45), 0 6px 20px rgba(0,0,0,.4); }
+
+  .node-orange {
+    background: linear-gradient(135deg, #7b241c 0%, #5d1b14 100%);
+    border: 1px solid rgba(192,57,43,.4);
+  }
+  .node-orange:hover { box-shadow: 0 0 18px rgba(192,57,43,.4), 0 6px 20px rgba(0,0,0,.4); }
+
+  .node-title {
+    font-weight: 700;
+    font-size: .88rem;
+    margin-bottom: .18rem;
+  }
+  .node-sub {
+    font-size: .7rem;
+    font-family: var(--mono);
+    color: rgba(255,255,255,.55);
+    line-height: 1.45;
+  }
+  .node-file {
+    display: inline-block;
+    margin-top: .32rem;
+    font-size: .62rem;
+    font-family: var(--mono);
+    padding: .14rem .45rem;
+    border-radius: 4px;
+    background: rgba(0,0,0,.3);
+    color: rgba(255,255,255,.5);
+    border: 1px solid rgba(255,255,255,.08);
+  }
+
+  /* arrow between nodes inside a column */
+  .inner-arrow {
+    text-align: center;
+    color: rgba(255,255,255,.25);
+    font-size: .85rem;
+    line-height: 1;
+    margin: .15rem 0;
+    position: relative;
+  }
+
+  /* animated pulse ring on a node */
+  @keyframes pulseRing {
+    0%   { box-shadow: 0 0 0 0 rgba(26,188,156,.5); }
+    70%  { box-shadow: 0 0 0 10px rgba(26,188,156,0); }
+    100% { box-shadow: 0 0 0 0 rgba(26,188,156,0); }
+  }
+  .pulse-green { animation: pulseRing 2.5s ease infinite; }
+
+  /* ── bottom rows ── */
+  .bottom-single { margin-bottom: 1.4rem; }
+
+  .eval-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .9rem;
+    margin-bottom: .9rem;
+  }
+  .eval-model {
+    margin-top: 0;
+  }
+
+  /* ── Floating badge: "160 vectors" ── */
+  .badge-float {
+    display: inline-block;
+    background: rgba(52,152,219,.12);
+    border: 1px dashed rgba(52,152,219,.4);
+    color: var(--blue);
+    font-family: var(--mono);
+    font-size: .65rem;
+    padding: .3rem .6rem;
+    border-radius: 6px;
+    letter-spacing: .05em;
+    text-align: center;
+  }
+
+  /* ── SVG arrow styles ── */
+  .arrow-line {
+    stroke-dasharray: 6 4;
+    stroke-linecap: round;
+    animation: dashMove 1.4s linear infinite;
+  }
+  @keyframes dashMove {
+    to { stroke-dashoffset: -20; }
+  }
+
+  /* ── Particle dots on paths ── */
+  .particle { r: 4; }
+
+  /* ── Tooltip ── */
+  .tooltip {
+    position: fixed;
+    background: rgba(10,10,20,.95);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px;
+    padding: .55rem .8rem;
+    font-size: .72rem;
+    font-family: var(--mono);
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s;
+    z-index: 999;
+    max-width: 220px;
+    line-height: 1.55;
+  }
+
+  /* responsive */
+  @media (max-width: 640px) {
+    .top-grid { grid-template-columns: 1fr; }
+    .eval-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RAG Pipeline — Architecture</h1>
+  <p>Amazon Customer Service Agent · multilingual-e5-base · FAISS · Groq LLM</p>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#1abc9c"></div>Offline indexing</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7c5cbf"></div>Online query</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div>Generation</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#c0392b"></div>Evaluation</div>
+</div>
+
+<div class="canvas" id="canvas">
+  <svg id="connector-svg" aria-hidden="true"></svg>
+
+  <!-- ── TOP: offline + online ── -->
+  <div class="top-grid">
+
+    <!-- LEFT: offline indexing -->
+    <div class="section-panel panel-green" id="panel-offline">
+      <span class="section-title title-green">offline indexing pipeline</span>
+
+      <div class="node node-green pulse-green" id="n-docs"
+           data-tip="Supports PDFs, plain-text files, and images via EasyOCR (GPU).">
+        <div class="node-title">documents</div>
+        <div class="node-sub">PDFs · TXTs · images (OCR)</div>
+        <span class="node-file">docs_loader.py</span>
+      </div>
+
+      <div class="inner-arrow">↓</div>
+
+      <div class="node node-green" id="n-chunker"
+           data-tip="RecursiveCharacterTextSplitter: chunk_size=500, overlap=100.">
+        <div class="node-title">chunker</div>
+        <div class="node-sub">size=500 · overlap=100</div>
+        <span class="node-file">chunker.py</span>
+      </div>
+
+      <div class="inner-arrow">↓</div>
+
+      <div class="node node-green" id="n-embedder"
+           data-tip="intfloat/multilingual-e5-base. Adds 'passage: ' prefix. Runs on GPU.">
+        <div class="node-title">embedder</div>
+        <div class="node-sub">multilingual-e5-base · 768-dim</div>
+        <span class="node-file">embedder.py</span>
+      </div>
+
+      <div class="inner-arrow">↓</div>
+
+      <div class="node node-green" id="n-faiss"
+           data-tip="IndexFlatIP with L2-normalised vectors = cosine similarity search.">
+        <div class="node-title">FAISS index</div>
+        <div class="node-sub">IndexFlatIP · L2 normalised</div>
+      </div>
+
+      <div class="inner-arrow">↓</div>
+
+      <div class="node node-green" id="n-vstore"
+           data-tip="Persisted to disk. Loaded once at startup — no per-query reload.">
+        <div class="node-title">vector store</div>
+        <div class="node-sub">faiss.index + metadata.pkl</div>
+        <span class="node-file">vector_store.py</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: online query -->
+    <div class="section-panel panel-purple" id="panel-online">
+      <span class="section-title title-purple">online query pipeline</span>
+
+      <div class="node node-purple" id="n-query"
+           data-tip="Supports English, Hindi, and Hinglish. Language is mirrored in the reply.">
+        <div class="node-title">user query</div>
+        <div class="node-sub">English · Hindi · Hinglish · multilingual</div>
+      </div>
+
+      <div class="inner-arrow">↓ <span style="font-family:var(--mono);font-size:.62rem;color:#a98dde">prefix: "query: "</span></div>
+
+      <div class="node node-purple" id="n-qembed"
+           data-tip="Same e5-base model; 'query: ' prefix for asymmetric retrieval.">
+        <div class="node-title">query embedding</div>
+        <div class="node-sub">e5-base · 768-dim vector</div>
+      </div>
+
+      <div class="inner-arrow">↓</div>
+
+      <div class="node node-purple" id="n-cosine"
+           data-tip="Inner-product on L2-normalised vectors = cosine. top-k=5 chunks returned.">
+        <div class="node-title">cosine similarity</div>
+        <div class="node-sub">q·c / (|q||c|) · top-k=5 chunks</div>
+        <span class="node-file">retriever.py</span>
+      </div>
+
+      <div class="inner-arrow">↓</div>
+
+      <div class="node node-purple" id="n-chunks"
+           data-tip="Each chunk carries: text, source filename, page number, similarity score.">
+        <div class="node-title">retrieved chunks</div>
+        <div class="node-sub">text · source · page · score</div>
+      </div>
+
+      <div class="inner-arrow">↓</div>
+
+      <div class="node node-purple" id="n-context"
+           data-tip="System prompt + numbered context blocks + user question assembled here.">
+        <div class="node-title">context assembly</div>
+        <div class="node-sub">system prompt + chunks + query</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LLM Generation ── -->
+  <div class="bottom-single">
+    <div class="section-panel panel-blue" id="panel-gen">
+      <span class="section-title title-blue">generation</span>
+      <div class="node node-blue" id="n-llm"
+           data-tip="Groq API · llama-3.3-70b-versatile (prod) or llama-3.1-8b-instant (dev). Conversation history passed each turn.">
+        <div class="node-title">LLM generation</div>
+        <div class="node-sub">llama-3.3-70b-versatile · Groq API · system prompt enforces grounding · conversation memory</div>
+        <span class="node-file">generator.py</span>
+      </div>
+      <div class="inner-arrow">↓</div>
+      <div class="node node-blue" id="n-answer"
+           data-tip="Answer text + cited sources shown to the user: filename, page, similarity score.">
+        <div class="node-title">answer + citations</div>
+        <div class="node-sub">source filename · page number · similarity score</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Evaluation ── -->
+  <div class="bottom-single">
+    <div class="section-panel panel-orange" id="panel-eval">
+      <span class="section-title title-orange">evaluation layer — eval.py</span>
+      <div class="eval-grid">
+        <div class="node node-orange" id="n-sim"
+             data-tip="cosine(answer_embedding, ground_truth_embedding) using e5-base.">
+          <div class="node-title">answer similarity</div>
+          <div class="node-sub">cosine(answer, ground truth)</div>
+        </div>
+        <div class="node node-orange" id="n-ctxr"
+             data-tip="Average cosine between query and each retrieved chunk.">
+          <div class="node-title">context relevance</div>
+          <div class="node-sub">cosine(query, each chunk)</div>
+        </div>
+        <div class="node node-orange" id="n-faith"
+             data-tip="LLM judge (llama-4-scout) scores 0→1: is the answer grounded in context?">
+          <div class="node-title">faithfulness</div>
+          <div class="node-sub">LLM judge 0.0 → 1.0</div>
+        </div>
+      </div>
+      <div class="node node-orange eval-model" id="n-models"
+           data-tip="llama-4-scout-17b scored highest similarity (0.9129). 8b-instant is fastest at 0.52s avg.">
+        <div class="node-title">models compared</div>
+        <div class="node-sub">llama-4-scout-17b (primary) · llama-3.3-70b · llama-3.1-8b</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /canvas -->
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+/* ── Tooltip ── */
+const tooltip = document.getElementById('tooltip');
+document.querySelectorAll('[data-tip]').forEach(el => {
+  el.addEventListener('mouseenter', e => {
+    tooltip.textContent = el.dataset.tip;
+    tooltip.style.opacity = '1';
+  });
+  el.addEventListener('mousemove', e => {
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top  = (e.clientY - 10) + 'px';
+  });
+  el.addEventListener('mouseleave', () => {
+    tooltip.style.opacity = '0';
+  });
+});
+
+/* ── SVG connectors ── */
+const svg = document.getElementById('connector-svg');
+const canvas = document.getElementById('canvas');
+
+function getCenter(el) {
+  const cr = canvas.getBoundingClientRect();
+  const er = el.getBoundingClientRect();
+  return {
+    x: er.left - cr.left + er.width / 2,
+    y: er.top  - cr.top  + er.height / 2,
+    top:    er.top    - cr.top,
+    bottom: er.bottom - cr.top,
+    left:   er.left   - cr.left,
+    right:  er.right  - cr.left,
+    midX:   er.left   - cr.left + er.width  / 2,
+    midY:   er.top    - cr.top  + er.height / 2,
+  };
+}
+
+function makePath(d, color, dashLen = '6 4', dur = 1.4, particleColor) {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d);
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', color);
+  path.setAttribute('stroke-width', '2');
+  path.setAttribute('stroke-dasharray', dashLen);
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('opacity', '0.6');
+
+  const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+  anim.setAttribute('attributeName', 'stroke-dashoffset');
+  anim.setAttribute('from', '0');
+  anim.setAttribute('to', '-20');
+  anim.setAttribute('dur', dur + 's');
+  anim.setAttribute('repeatCount', 'indefinite');
+  path.appendChild(anim);
+
+  svg.appendChild(path);
+
+  // particle
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circle.setAttribute('r', '4');
+  circle.setAttribute('fill', particleColor || color);
+  circle.setAttribute('opacity', '0.9');
+  const animMot = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+  animMot.setAttribute('dur', (dur * 2.5) + 's');
+  animMot.setAttribute('repeatCount', 'indefinite');
+  const mpath = document.createElementNS('http://www.w3.org/2000/svg', 'mpath');
+  mpath.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '');
+
+  // inline path for animateMotion
+  const animMot2 = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+  animMot2.setAttribute('dur', (dur * 2.5) + 's');
+  animMot2.setAttribute('repeatCount', 'indefinite');
+  animMot2.setAttribute('path', d);
+  circle.appendChild(animMot2);
+  svg.appendChild(circle);
+
+  return path;
+}
+
+function makeArrow(x1, y1, x2, y2, color, dur) {
+  // arrowhead marker
+  let markId = 'arr_' + Math.random().toString(36).slice(2,7);
+  const defs = svg.querySelector('defs') || (() => {
+    const d = document.createElementNS('http://www.w3.org/2000/svg','defs');
+    svg.prepend(d); return d;
+  })();
+  const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+  marker.setAttribute('id', markId);
+  marker.setAttribute('markerWidth','8');
+  marker.setAttribute('markerHeight','8');
+  marker.setAttribute('refX','6');
+  marker.setAttribute('refY','3');
+  marker.setAttribute('orient','auto');
+  const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+  poly.setAttribute('points','0 0, 6 3, 0 6');
+  poly.setAttribute('fill', color);
+  marker.appendChild(poly);
+  defs.appendChild(marker);
+
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+  const d = `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`;
+
+  const path = makePath(d, color, '6 4', dur || 1.6, color);
+  path.setAttribute('marker-end', `url(#${markId})`);
+}
+
+function drawConnectors() {
+  // clear old
+  while (svg.lastChild) svg.removeChild(svg.lastChild);
+
+  const vstore  = document.getElementById('n-vstore');
+  const qembed  = document.getElementById('n-qembed');
+  const cosine  = document.getElementById('n-cosine');
+  const context = document.getElementById('n-context');
+  const llm     = document.getElementById('n-llm');
+  const answer  = document.getElementById('n-answer');
+  const sim     = document.getElementById('n-sim');
+  const ctxr    = document.getElementById('n-ctxr');
+  const faith   = document.getElementById('n-faith');
+
+  const V  = getCenter(vstore);
+  const QE = getCenter(qembed);
+  const CO = getCenter(cosine);
+  const CT = getCenter(context);
+  const LL = getCenter(llm);
+  const AN = getCenter(answer);
+  const SI = getCenter(sim);
+  const CR = getCenter(ctxr);
+  const FA = getCenter(faith);
+
+  // vector store → cosine (cross-panel dashed)
+  makeArrow(V.right, V.midY, CO.left, CO.midY, '#1abc9c', 1.8);
+
+  // context → llm
+  makeArrow(CT.midX, CT.bottom, LL.midX, LL.top, '#7c5cbf', 1.5);
+
+  // vstore → llm (dashed label path)
+  makeArrow(V.midX, V.bottom, LL.left, LL.midY, '#1abc9c', 2.2);
+
+  // answer → eval nodes
+  makeArrow(AN.midX, AN.bottom, SI.midX, SI.top,  '#3498db', 1.9);
+  makeArrow(AN.midX, AN.bottom, CR.midX, CR.top,  '#3498db', 2.1);
+  makeArrow(AN.midX, AN.bottom, FA.midX, FA.top,  '#3498db', 2.3);
+}
+
+// draw after layout settles
+window.addEventListener('load', () => {
+  drawConnectors();
+  window.addEventListener('resize', drawConnectors);
+});
+
+/* ── Entrance animation ── */
+const nodes = document.querySelectorAll('.node, .section-panel');
+nodes.forEach((n, i) => {
+  n.style.opacity = '0';
+  n.style.transform = 'translateY(18px)';
+  n.style.transition = `opacity .5s ease ${i * 0.04}s, transform .5s ease ${i * 0.04}s`;
+});
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    nodes.forEach(n => {
+      n.style.opacity = '1';
+      n.style.transform = '';
+    });
+  });
+});
+</script>
+</body>
+</html>
