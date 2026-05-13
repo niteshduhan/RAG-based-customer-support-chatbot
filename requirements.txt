@@ -13,7 +13,7 @@ groq==0.9.0
 
 # ── Embeddings & Vector Store ──────────────────────────────────
 sentence-transformers==3.0.1
-faiss-cpu==1.8.0          # swap to faiss-gpu if you have CUDA in prod
+faiss-cpu==1.7.4         # swap to faiss-gpu if you have CUDA in prod
 
 # ── Chunking ────────────────────────────────────────────────────
 langchain-text-splitters==0.2.4
